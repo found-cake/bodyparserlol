@@ -11,11 +11,14 @@ import (
 	"github.com/found-cake/bodyparserlol/config"
 	"github.com/found-cake/bodyparserlol/dto"
 	"github.com/found-cake/bodyparserlol/errors"
+	"github.com/found-cake/bodyparserlol/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
 	app := fiber.New()
+
+	app.Use(middleware.Filter)
 
 	app.Post("/random", randomDice)
 	app.Post("/now", getNow)
@@ -47,7 +50,7 @@ func checkClear(c *fiber.Ctx) error {
 		})
 	}
 	return c.JSON(dto.GameResult{
-		Message: fmt.Sprintf("Flag is %s  ㅋㅋ", config.FAKE_FLAG),
+		Message: fmt.Sprintf("Flag is %s  ㅋㅋ", config.FFLAG),
 	})
 }
 
@@ -65,6 +68,9 @@ func randomDice(c *fiber.Ctx) error {
 	for _, v := range info.Dice {
 		if v == nil {
 			continue
+		}
+		if v.DiceType < 1 {
+			return c.SendStatus(http.StatusBadRequest)
 		}
 		for i := 0; i < v.Count; i++ {
 			total += 1 + rand.Intn(v.DiceType)
